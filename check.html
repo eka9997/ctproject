@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>비버 연구소 보안 패널 퍼즐</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; max-width: 1000px; margin: auto; padding: 20px; }
+  h1 { font-size: 28px; margin-bottom: 10px; color: #2e7d32; }
+  .description { text-align: left; background: #f5f5f5; padding: 15px; border-radius: 8px; line-height: 1.5; margin-bottom: 20px; }
+  .rules { background: #fff8e1; padding: 10px; margin-top: 10px; border-left: 5px solid #ffa000; }
+  .header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 18px; }
+  .grid-container { display: flex; justify-content: space-between; margin-top: 10px; }
+  .grid-wrapper { text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(5, 60px); grid-template-rows: repeat(5, 60px); gap: 5px; margin: 10px; }
+  .cell { width: 60px; height: 60px; background-color: white; border: 1px solid #333; cursor: pointer; }
+  .black { background-color: black; }
+  .timer { font-size: 20px; color: #d32f2f; }
+  .result { margin-top: 15px; font-size: 20px; font-weight: bold; }
+  .solution-grid { border: 3px solid transparent; }
+  .blink-red { animation: blink 0.5s infinite alternate; border: 3px solid red !important; }
+  .warning-light { width: 20px; height: 20px; background-color: red; border-radius: 50%; display: inline-block; animation: blink 0.5s infinite alternate; margin-left: 10px; }
+  @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
+  .firework { position: fixed; width: 10px; height: 10px; background: red; border-radius: 50%; animation: explode 1s ease-out forwards; pointer-events: none; }
+  @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(5); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<h1>🔐 비버 연구소 보안 패널 퍼즐</h1>
+
+<div class="description">
+  비버 연구소의 실험 데이터가 잠겨 있는 보안 패널이 있습니다.<br>
+  패널은 5×5 회로판으로 구성되어 있으며, 전류가 흐르는 칸(●)과 흐르지 않는 칸(○)으로 표시됩니다.<br>
+  <div class="rules">
+    <strong>보안 규칙:</strong><br>
+    1️⃣ 각 행에는 반드시 ●가 3개 있어야 합니다.<br>
+    2️⃣ 각 열에는 ●가 2개 이상, 4개 이하 있어야 합니다.<br>
+    3️⃣ 네 개의 모서리 칸은 모두 같은 상태(● 또는 ○)여야 합니다.<br>
+    4️⃣ 중앙 칸(3행 3열)은 반드시 ●입니다.<br>
+  </div>
+  제한 시간 2분, 최대 4회 시도 안에 퍼즐을 해결하세요.<br>
+  4회 실패 시 정답이 자동으로 공개됩니다.
+</div>
+
+<div class="header">
+  <div>내가 시도한 결과</div>
+  <div class="timer" id="timer">남은 시간: 02:00</div>
+  <div>정답 격자</div>
+</div>
+
+<div>시도 횟수: <span id="attempts">0</span>/4 <span id="warning"></span></div>
+
+<div class="grid-container">
+  <div class="grid-wrapper">
+    <div class="grid" id="userGrid"></div>
+  </div>
+  <div class="grid-wrapper">
+    <div class="grid solution-grid" id="solutionGrid"></div>
+  </div>
+</div>
+
+<button onclick="checkAnswer()">정답 확인</button>
+<div class="result" id="result"></div>
+
+<script>
+const rows = 5, cols = 5;
+const problemGrid = [
+  [1, 0, 0, 1, 1],
+  [0, 1, 1, 1, 1],
+  [0, 0, 1, 1, 0],
+  [1, 1, 0, 0, 1],
+  [1, 1, 0, 1, 1]
+];
+const solutionGridData = [
+  [1, 0, 0, 1, 1],
+  [0, 0, 1, 1, 1],
+  [1, 0, 1, 1, 0],
+  [1, 1, 0, 0, 1],
+  [1, 1, 0, 0, 1]
+];
+
+const userGridElement = document.getElementById("userGrid");
+const solutionGridElement = document.getElementById("solutionGrid");
+const attemptsElement = document.getElementById("attempts");
+const warningElement = document.getElementById("warning");
+let wrongAttempts = 0;
+
+// 사용자 격자 생성
+for (let i = 0; i < rows; i++) {
+  for (let j = 0; j < cols; j++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    if (problemGrid[i][j] === 1) cell.classList.add("black");
+    cell.dataset.row = i;
+    cell.dataset.col = j;
+    cell.addEventListener("click", () => cell.classList.toggle("black"));
+    userGridElement.appendChild(cell);
+  }
+}
+
+// 정답 격자 (처음 흰색)
+for (let i = 0; i < rows * cols; i++) {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
+  solutionGridElement.appendChild(cell);
+}
+
+function checkAnswer() {
+  const userCells = userGridElement.children;
+  let correct = true;
+  for (let i = 0; i < rows * cols; i++) {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const isBlack = userCells[i].classList.contains("black") ? 1 : 0;
+    if (isBlack !== solutionGridData[row][col]) correct = false;
+  }
+
+  wrongAttempts++;
+  attemptsElement.textContent = wrongAttempts;
+
+  if (wrongAttempts === 3) {
+    warningElement.innerHTML = '<span class="warning-light"></span> 마지막 시도입니다!';
+  }
+
+  if (correct) {
+    document.getElementById("result").textContent = "🎉 축하합니다! 정답입니다!";
+    fireworks();
+    animateSolutionReveal();
+    clearInterval(timerInterval);
+  } else if (wrongAttempts >= 4) {
+    document.getElementById("result").textContent = "❌ 4회 실패! 정답을 공개합니다.";
+    fireworks();
+    animateSolutionReveal();
+    clearInterval(timerInterval);
+  } else {
+    document.getElementById("result").textContent = "❌ 정답이 아닙니다!";
+    solutionGridElement.classList.add("blink-red");
+    setTimeout(() => solutionGridElement.classList.remove("blink-red"), 2000);
+  }
+}
+
+function animateSolutionReveal() {
+  const solCells = solutionGridElement.children;
+  let index = 0;
+  const interval = setInterval(() => {
+    if (index >= rows * cols) {
+      clearInterval(interval);
+      return;
+    }
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+    if (solutionGridData[row][col] === 1) {
+      solCells[index].classList.add("black");
+    }
+    index++;
+  }, 100);
+}
+
+function fireworks() {
+  for (let i = 0; i < 30; i++) {
+    const firework = document.createElement("div");
+    firework.classList.add("firework");
+    firework.style.top = Math.random() * window.innerHeight + "px";
+    firework.style.left = Math.random() * window.innerWidth + "px";
+    document.body.appendChild(firework);
+    setTimeout(() => firework.remove(), 1000);
+  }
+}
+
+let timeLeft = 120;
+const timerElement = document.getElementById("timer");
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const seconds = String(timeLeft % 60).padStart(2, '0');
+  timerElement.textContent = `남은 시간: ${minutes}:${seconds}`;
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById("result").textContent = "⏰ 시간이 종료되었습니다! 정답을 공개합니다.";
+    fireworks();
+    animateSolutionReveal();
+  }
+}, 1000);
+</script>
+
+</body>
+</html>
+
+
