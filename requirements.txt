@@ -1,0 +1,9 @@
+streamlit
+pandas
+pillow
+pytesseract
+fpdf
+matplotlib
+scikit-learn
+sentence-transformers
+numpy
