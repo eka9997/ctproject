@@ -1,9 +1,9 @@
 streamlit
 pandas
-pillow
+Pillow
 pytesseract
 fpdf
 matplotlib
-scikit-learn
 sentence-transformers
+scikit-learn
 numpy
