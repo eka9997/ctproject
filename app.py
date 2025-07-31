@@ -121,15 +121,15 @@ div[data-testid="stExpander"] > div > button {{
     padding-top: 20px !important;
     padding-bottom: 20px !important;
     border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0px 5px 12px rgba(0, 0, 0, 0.2);
 }}
 
 div[data-testid="stExpander"] > div > button p {{
-    font-size: 32px !important;
+    font-size: 200% !important;
     font-weight: bold !important;
-    color: black !important;
+    color: white !important;
 }}
 
 div[data-testid="stExpander"] .streamlit-expanderContent {{
@@ -166,13 +166,6 @@ with col1:
                 htmlviewer.html(f.read(), height=1000)
         else:
             st.error("tree.html 파일이 없습니다.")
-
-    with st.expander('Content #4 (index.html)...'):
-        if os.path.exists('index.html'):
-            with open('index.html', 'r', encoding='utf-8') as f:
-                htmlviewer.html(f.read(), height=1000)
-        else:
-            st.error("index.html 파일이 없습니다.")
 
     with st.expander('Image Content #1...'):
         htmlviewer.html(custom_html, height=600)
